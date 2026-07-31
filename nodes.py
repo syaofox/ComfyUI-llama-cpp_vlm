@@ -378,21 +378,33 @@ class llama_cpp_model_loader:
         mmproj_list = ["None"]+[f for f in all_llms if "mmproj" in f.lower()]
             
         return {"required": {
-            "model": (model_list,),
-            "mmproj": (mmproj_list, {"default": "None"}),
-            "chat_handler": (chat_handlers, {"default": "None"}),
+            "model": (model_list, {"tooltip": "LLM 目录下的 GGUF 语言模型文件（自动排除 mmproj 视觉模块）。"}),
+            "mmproj": (mmproj_list, {
+                "default": "None",
+                "tooltip": "视觉编码器（mmproj）文件。图像/视频输入时必须选择，且需与模型匹配。"
+            }),
+            "chat_handler": (chat_handlers, {
+                "default": "None",
+                "tooltip": "对话模板处理器，必须与模型的架构匹配（如 Qwen3.5 选 Qwen3.5，LLaVA 架构选 LLaVA-1.5）。\n图像输入时不能为 None。"
+            }),
             "n_ctx": ("INT", {
                 "default": 8192,
                 "min": 1024, "max": 327680, "step": 128,
-                "tooltip": "Context length limit."
+                "tooltip": "上下文长度限制。越小占用显存越少；模型训练上下文较大时无需追求满载。"
             }),
             "vram_limit": ("INT", {
                 "default": -1,
                 "min": -1, "max": 1024, "step": 1,
-                "tooltip": "VRAM usage limit in GB (-1 = no limit)\nReference range; actual usage may slightly exceed."
+                "tooltip": "显存使用上限（GB），-1 = 不限（全部层进 GPU）。\n设置后会自动计算可放入 GPU 的层数，剩余层跑 CPU。实际占用可能略超。"
             }),
-            "image_min_tokens": ("INT", {"default": 0, "min": 0, "max": 4096, "step": 32}),
-            "image_max_tokens": ("INT", {"default": 0, "min": 0, "max": 4096, "step": 32}),
+            "image_min_tokens": ("INT", {
+                "default": 0, "min": 0, "max": 4096, "step": 32,
+                "tooltip": "图像最小 token 数（Qwen3-VL / Qwen3.5 系列）。0 = 使用模型默认值。"
+            }),
+            "image_max_tokens": ("INT", {
+                "default": 0, "min": 0, "max": 4096, "step": 32,
+                "tooltip": "图像最大 token 数（Qwen3-VL / Qwen3.5 系列）。0 = 使用模型默认值。\n调小可节省显存与显存占用，但会损失图像细节。"
+            }),
             }
         }
 
@@ -440,44 +452,77 @@ class llama_cpp_instruct_adv:
         return {
             "required": {
                 "llama_model": ("LLAMACPPMODEL",),
-                "preset_prompt": (preset_tags, {"default": preset_tags[1]}),
-                "custom_prompt": ("STRING", {"default": "", "multiline": True, "placeholder": 'user_prompt\n\nFor preset hints marked with an "*", this will be used to fill the placeholder (e.g., Object names in BBox detection)\nOtherwise, this will override the preset prompts.'}),
-                "system_prompt": ("STRING", {"multiline": True, "default": ""}),
+                "preset_prompt": (preset_tags, {
+                    "default": preset_tags[1],
+                    "tooltip": "内置提示词预设。\n"
+                               "@ 代表图像（视频模式自动替换为 video），# 为自定义内容占位符。\n"
+                               "带 * 的预设会使用 custom_prompt 填充占位符；其余预设只要填写了 custom_prompt 就会被完全替换。\n\n"
+                               "Empty - Nothing: 不使用预设\n"
+                               "Normal - Describe: 简单描述图片\n"
+                               "Prompt Style - Tags: 生成最多 50 个逗号分隔的视觉标签（禁抽象概念）\n"
+                               "Prompt Style - Simple: 强制单句简洁描述\n"
+                               "Prompt Style - Detailed: 2-3 句详细描述\n"
+                               "Prompt Style - Extreme Detailed: 极详细长段落描述\n"
+                               "Prompt Style - Cinematic: 电影风格化提示词（主体/姿势/环境/灯光/风格）\n"
+                               "Creative - Detailed Analysis: 按主体/服饰/背景等分节分析\n"
+                               "Creative - Summarize Video: 总结视频关键事件（视频模式）\n"
+                               "Creative - Short Story: 看图创作短故事\n"
+                               "Creative - Refine & Expand Prompt: 扩写增强已有提示词\n"
+                               "Vision - *Bounding Box: 输出 bbox 定位 JSON（# 填目标类别）",
+                }),
+                "custom_prompt": ("STRING", {
+                    "default": "", "multiline": True,
+                    "placeholder": 'user_prompt\n\nFor preset hints marked with an "*", this will be used to fill the placeholder (e.g., Object names in BBox detection)\nOtherwise, this will override the preset prompts.',
+                    "tooltip": "自定义提示词。\n若预设名带 *（如 Bounding Box），此处内容填入预设的 # 占位符；\n否则只要非空，就会完全覆盖预设提示词。"
+                }),
+                "system_prompt": ("STRING", {
+                    "multiline": True, "default": "",
+                    "tooltip": "系统提示词，位于对话最前，用于设定角色/全局规则。\n修改后会自动清空对话历史。"
+                }),
                 "inference_mode": (["one by one", "images", "video"], {
                     "default": "one by one",
-                    "tooltip": "one by one: Read one image at a time\nimages:  \tRead all images at once\nvideo:  \tTreat the input images as video"
+                    "tooltip": "one by one: 逐张读取图像（每张独立生成）\nimages: 一次读取全部图像（多图共答）\nvideo: 将输入图像序列当作视频处理"
                 }),
                 "max_frames": ("INT", {
                     "default": 24,
                     "min": 2,
                     "max": 1024,
                     "step": 1,
-                    "tooltip": 'Number of frames to sample evenly from input video.\n(for "video" mode only)'
+                    "tooltip": "从输入视频中均匀采样的帧数（仅 video 模式生效）。"
                 }),
                 "max_size": ("INT", {
                     "default": 256,
                     "min": 128,
                     "max": 16384,
                     "step": 64,
-                    "tooltip": 'Max size of input images in "images" and "video" modes.'
+                    "tooltip": '图像缩放的最大边长（images 和 video 模式）。调小可加快处理、节省显存。'
                 }),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1}),
+                "seed": ("INT", {
+                    "default": 0, "min": 0, "max": 0xffffffffffffffff, "step": 1,
+                    "tooltip": "随机种子。固定后同图同参数输出可复现。"
+                }),
                 "force_offload": ("BOOLEAN", {
                     "default": False,
-                    "tooltip": "Unload the model after inference."
+                    "tooltip": "推理完成后立即卸载模型，释放显存（下次执行会重新加载）。"
                 }),
                 "save_states": ("BOOLEAN", {
                     "default": False,
-                    "tooltip": "Preserve the context of this conversation in RAM."
+                    "tooltip": "在内存中保存本轮对话历史，多轮对话可延续上下文。\n（会占用显存/内存，不需要时建议关闭）"
                 }),
             },
             "hidden": {
                 "unique_id": "UNIQUE_ID",
             },
             "optional": {
-                "parameters": ("LLAMACPPARAMS",),
-                "images": ("IMAGE",),
-                "queue_handler": (any_type, {"tooltip": "Used to control the execution order of instruct nodes."}),
+                "parameters": ("LLAMACPPARAMS", {
+                    "tooltip": "采样参数（来自 Llama-cpp Parameters 节点）。不连接则使用默认采样参数。"
+                }),
+                "images": ("IMAGE", {
+                    "tooltip": "图像/视频帧输入（支持多图或批处理）。"
+                }),
+                "queue_handler": (any_type, {
+                    "tooltip": "用于控制多个 Instruct 节点的执行顺序（来自同类的 queue_handler 输出）。"
+                }),
             },
             
         }
@@ -627,23 +672,59 @@ class llama_cpp_parameters:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "max_tokens": ("INT", {"default": 1024, "min": 0, "max": 4096, "step": 1}),
-                "top_k": ("INT", {"default": 30, "min": 0, "max": 1000, "step": 1}),
-                "top_p": ("FLOAT", {"default": 0.9, "min": 0.0, "max": 1.0, "step": 0.01}),
-                "min_p": ("FLOAT", {"default": 0.05, "min": 0.0, "max": 1.0, "step": 0.01}),
-                "typical_p": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
-                "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.01}),
-                "repeat_penalty": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0, "step": 0.01}),
-                "frequency_penalty": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 1.0, "step": 0.01}),
-                "present_penalty": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 2.0, "step": 0.01}),
+                "max_tokens": ("INT", {
+                    "default": 1024, "min": 0, "max": 4096, "step": 1,
+                    "tooltip": "单次生成的最大 token 数。0 = 不限（直到结束符或上下文用尽）。"
+                }),
+                "top_k": ("INT", {
+                    "default": 30, "min": 0, "max": 1000, "step": 1,
+                    "tooltip": "仅从概率最高的前 K 个 token 中采样。0 = 禁用。值越小输出越保守。"
+                }),
+                "top_p": ("FLOAT", {
+                    "default": 0.9, "min": 0.0, "max": 1.0, "step": 0.01,
+                    "tooltip": "核采样：累计概率达到该值的最小 token 集合内采样。1.0 = 禁用。"
+                }),
+                "min_p": ("FLOAT", {
+                    "default": 0.05, "min": 0.0, "max": 1.0, "step": 0.01,
+                    "tooltip": "最小概率阈值：概率低于（最高概率 × min_p）的 token 被剔除。0 = 禁用。"
+                }),
+                "typical_p": ("FLOAT", {
+                    "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01,
+                    "tooltip": "典型采样参数。1.0 = 禁用。"
+                }),
+                "temperature": ("FLOAT", {
+                    "default": 0.8, "min": 0.0, "max": 2.0, "step": 0.01,
+                    "tooltip": "采样温度：越高输出越发散/有创意，越低越确定/保守。\n建议 0.7-1.0；出现复读可调高。"
+                }),
+                "repeat_penalty": ("FLOAT", {
+                    "default": 1.0, "min": 0.0, "max": 10.0, "step": 0.01,
+                    "tooltip": "重复惩罚：>1 抑制近期重复 token（作用于最近窗口）。\n模型复读时建议 1.1-1.3。"
+                }),
+                "frequency_penalty": ("FLOAT", {
+                    "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.01,
+                    "tooltip": "频率惩罚：对全序列中出现过的 token 按出现次数惩罚，抑制整体重复。"
+                }),
+                "present_penalty": ("FLOAT", {
+                    "default": 0.0, "min": 0.0, "max": 2.0, "step": 0.01,
+                    "tooltip": "存在惩罚：对已出现的 token 给予固定惩罚，鼓励话题切换（不区分次数）。"
+                }),
                 #"tfs_z": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0, "step": 0.01}),
                 #"penalty_last_n": ("INT", {"default": 64, "min": -1, "max": 8192, "step": 1}),
-                "mirostat_mode": ("INT", {"default": 0, "min": 0, "max": 2, "step": 1}),
-                "mirostat_eta": ("FLOAT", {"default": 0.1, "min": 0.0, "max": 1.0, "step": 0.01}),
-                "mirostat_tau": ("FLOAT", {"default": 5.0, "min": 0.0, "max": 10.0, "step": 0.01}),
+                "mirostat_mode": ("INT", {
+                    "default": 0, "min": 0, "max": 2, "step": 1,
+                    "tooltip": "Mirostat 自适应采样模式：0 = 禁用，1 = Mirostat，2 = Mirostat 2.0。"
+                }),
+                "mirostat_eta": ("FLOAT", {
+                    "default": 0.1, "min": 0.0, "max": 1.0, "step": 0.01,
+                    "tooltip": "Mirostat 学习率：越低对文本的适应越慢。"
+                }),
+                "mirostat_tau": ("FLOAT", {
+                    "default": 5.0, "min": 0.0, "max": 10.0, "step": 0.01,
+                    "tooltip": "Mirostat 目标困惑度（perplexity）。"
+                }),
                 "state_uid": ("INT", {
                     "default": -1, "min": -1, "max": 999999, "step": 1,
-                    "tooltip": "Use a specific ID to save the conversation state.\n(-1 = use node's unique_id)"
+                    "tooltip": "对话状态的保存 ID。-1 = 使用节点的 unique_id。\n配合 Instruct 节点的 save_states 使用。"
                 }),
             }
         }
