@@ -294,7 +294,9 @@ preset_prompts = {
     "Creative - Summarize Video": "Summarize the key events and narrative points in this video.",
     "Creative - Short Story": "Write a short, imaginative story inspired by this @ or video.",
     "Creative - Refine & Expand Prompt": "Refine and enhance the following user prompt for creative text-to-@ generation. Keep the meaning and keywords, make it more expressive and visually rich. Output **only the improved prompt text itself**, without any reasoning steps, thinking process, or additional commentary.",
-    "Vision - *Bounding Box": 'Locate every instance that belongs to the following categories: "#". Report bbox coordinates in {"bbox_2d": [x1, y1, x2, y2], "label": "string"} JSON format as a List.'
+    "Vision - *Bounding Box": 'Locate every instance that belongs to the following categories: "#". Report bbox coordinates in {"bbox_2d": [x1, y1, x2, y2], "label": "string"} JSON format as a List.',
+    "Qwen Tagging - 中文结果 [*]": "角色：专业 LoRA 打标工程师\n职责：根据输入图像 + 要求，生成高质量、标准化、可直接训练的 LoRA 打标标签。\n**必须100%严格遵守以下所有规则，不得违反任何一条**：\n【一】核心目标\n✅ **完全固定**：人物的脸型、五官、肤色、身材（所有这些特征仅绑定到唯一触发词，绝对不能出现在标签中）\n❌ **自由可变**：景别、构图、姿态、情绪、服装、配饰、道具、背景、灯光（所有这些元素必须用准确、简洁的中文完整描述）\n\n【二】不可违反的铁律\n1.  **触发词强制规则**：每张图的标签**必须以触发词 `#` 作为开头**，这是唯一的人物触发词，全程唯一，另外触发词后加上“一个女孩，单人”\n2.  **固定特征零描述规则**：所有与人物的脸型、肤色、身材的特征禁止描述**绝对禁止出现在标签的任何位置**\n3.  **可变特征全描述规则**：所有可修改的元素，必须用准确、简洁的中文完整描述，不得遗漏，包括：\n    - 景别/角度：图片的景别和角度（如正面、侧面、右前方、站姿、坐姿、仰视、俯视、特写、中景、全身等）\n    - 姿态：描述姿态、肢体动作\n    - 情绪神态：人物的表情气质（如温婉平静、清冷疏离、自然微笑等）\n    - 服装细节：衣服的款式、颜色、纹样、材质、细节\n    - 配饰：耳饰、腰饰、项链、发饰等所有饰品\n    - 道具：人物手持/身边的物品\n    - 背景：环境、场景\n    - 灯光：灯光和氛围\n4.  **标签结构统一规则**：每张图的标签必须严格按照以下顺序排列，不得打乱顺序，保证模型学习逻辑一致：\n    触发词 → 景别和构图→ 姿态 → 情绪 → 服装 → 配饰 → 道具 → 背景 → 灯光\n5.  **用词规范规则**：\n    - 全程使用**纯中文打标**，只有触发词可以为英文，不得混用其他英文。\n    - 用词精准简洁，避免冗余、重复，同一类元素用词统一（如“挂脖上衣”全程统一，不得改为“挂脖衫”等）。\n    - 不得添加任何无关标签、主观评价、冗余修饰（如“非常好看的”“精致的”等）。\n6.  **画质标签统一规则**：每张图的标签末尾，必须添加统一的画质标签：`8k高清, 写实风格, 细节拉满`，不得修改、遗漏。\n\n【三】示例参考（以此为基础标准，你生成的内容要各更多更丰富）\n示例1输出标签：\n#, 1个女孩，正面角度，脸部特写，站姿，情绪平静，露肩, 上衣是紫色挂脖高领旗袍，白色荷叶边露肩的袖套,深紫色宽腰带，腰带中央是金色花形腰扣，淡紫色披风，蓝色蝴蝶发饰，紫色花朵发饰, 蓝绿色菱形耳坠, 墨绿色纯色背景, 棚拍柔光，8k高清, 写实风格, 细节拉满\n\n示例2输出标签：\n#, 1个女孩，侧面角度，中景人像，人物坐在汽车后排座位，自然微笑，米白色圆领泡泡袖短袖上衣，下装搭配浅蓝色牛仔裤，高马尾发型，背景在汽车内，窗外是模糊的街道，暖金色阳光从车窗斜射而入，8k高清, 写实风格, 细节拉满\n\n【四】绝对禁止出现在标签中的内容\n- 除触发词外的其他英文\n- 冗余修饰、主观评价、无关标签\n- 打乱标签顺序\n- 遗漏可变特征的描述\n- 重复用词、冗余描述",
+    "Qwen Tagging - 英文结果 [*]": "角色：专业 LoRA 打标工程师\n职责：根据输入图像 + 要求，生成高质量、标准化、可直接训练的 LoRA 打标标签。\n**必须100%严格遵守以下所有规则，不得违反任何一条**：\n【一】核心目标\n✅ **完全固定**：人物的脸型、五官、肤色、身材（所有这些特征仅绑定到唯一触发词，绝对不能出现在标签中）\n❌ **自由可变**：景别、构图、姿态、情绪、服装、配饰、道具、背景、灯光（所有这些元素必须用准确、简洁的英文完整描述）\n\n【二】不可违反的铁律\n1.  **触发词强制规则**：每张图的标签**必须以触发词 `#` 作为开头**，这是唯一的人物触发词，全程唯一，另外触发词后加上“1girl, solo”\n2.  **固定特征零描述规则**：所有与人物的脸型、肤色、身材的特征禁止描述**绝对禁止出现在标签的任何位置**\n3.  **可变特征全描述规则**：所有可修改的元素，必须用准确、简洁的英文完整描述，不得遗漏，包括：\n    - 景别/角度：图片的景别和角度（如 front view、side view、right three-quarter view、standing、sitting、low angle、close-up、medium shot、full body 等）\n    - 姿态：描述姿态、肢体动作\n    - 情绪神态：人物的表情气质（如 gentle and calm、cold and aloof、natural smile 等）\n    - 服装细节：衣服的款式、颜色、纹样、材质、细节\n    - 配饰：耳饰、腰饰、项链、发饰等所有饰品\n    - 道具：人物手持/身边的物品\n    - 背景：环境、场景\n    - 灯光：灯光和氛围\n4.  **标签结构统一规则**：每张图的标签必须严格按照以下顺序排列，不得打乱顺序，保证模型学习逻辑一致：\n    触发词 → 景别和构图→ 姿态 → 情绪 → 服装 → 配饰 → 道具 → 背景 → 灯光\n5.  **用词规范规则**：\n    - 全程使用**纯英文打标**，只有触发词可以为非英文（如中文拼音），不得混用其他语言。\n    - 用词精准简洁，避免冗余、重复，同一类元素用词统一（如 “qipao top” 全程统一，不得改为 “qipao shirt” 等）。\n    - 不得添加任何无关标签、主观评价、冗余修饰（如 \"very beautiful\"、\"exquisite\" 等）。\n6.  **画质标签统一规则**：每张图的标签末尾，必须添加统一的画质标签：`8k, realistic, highly detailed`，不得修改、遗漏。\n\n【三】示例参考（以此为基础标准，你生成的内容要各更多更丰富）\n示例1输出标签：\n#, 1girl, solo, front view, close-up of face, standing, calm expression, off-shoulder, purple high-neck qipao top, white ruffled off-shoulder sleeves, dark purple wide waist belt with golden flower buckle at the center, light purple cape, blue butterfly hair ornament, purple flower hair ornament, blue-green rhombus drop earrings, dark green plain background, studio soft lighting, 8k, realistic, highly detailed\n\n示例2输出标签：\n#, 1girl, solo, side view, medium shot, sitting in the back seat of a car, natural smile, cream round-neck puffy short-sleeve top, light blue jeans, high ponytail, car interior in background, blurry street visible through the window, warm golden sunlight streaming in from the side window, 8k, realistic, highly detailed\n\n【四】绝对禁止出现在标签中的内容\n- 除触发词外的其他非英文字符（如中文）\n- 冗余修饰、主观评价、无关标签\n- 打乱标签顺序\n- 遗漏可变特征的描述\n- 重复用词、冗余描述",
 }
 preset_tags = list(preset_prompts.keys())
 
@@ -468,7 +470,9 @@ class llama_cpp_instruct_adv:
                                "Creative - Summarize Video: 总结视频关键事件（视频模式）\n"
                                "Creative - Short Story: 看图创作短故事\n"
                                "Creative - Refine & Expand Prompt: 扩写增强已有提示词\n"
-                               "Vision - *Bounding Box: 输出 bbox 定位 JSON（# 填目标类别）",
+                               "Vision - *Bounding Box: 输出 bbox 定位 JSON（# 填目标类别）\n"
+                               "Qwen Tagging - 中文结果 [*]: LoRA 打标规则书（中文输出），# 填触发词\n"
+                               "Qwen Tagging - 英文结果 [*]: LoRA 打标规则书（英文输出），# 填触发词",
                 }),
                 "custom_prompt": ("STRING", {
                     "default": "", "multiline": True,
@@ -527,9 +531,10 @@ class llama_cpp_instruct_adv:
             
         }
     
-    RETURN_TYPES = ("STRING", "STRING", "INT")
-    RETURN_NAMES = ("output", "output_list", "state_uid")
-    OUTPUT_IS_LIST = (False, True, False)
+    RETURN_TYPES = ("STRING", "STRING", "INT", "STRING")
+    RETURN_NAMES = ("output", "output_list", "state_uid", "final_prompt")
+    OUTPUT_IS_LIST = (False, True, False, False)
+    OUTPUT_TOOLTIPS = ("模型生成的最终文本（单条）", "模型生成的最终文本（列表，多图逐条）", "对话状态 ID", "本次实际传给模型的最终用户提示词（预设替换后）")
     FUNCTION = "process"
     CATEGORY = "llama-cpp-vlm"
     
@@ -581,10 +586,13 @@ class llama_cpp_instruct_adv:
         out1 = ""
         out2 = []
         user_content = []
+        prompt_text = ""
         if custom_prompt.strip() and "*" not in preset_prompt:
+            prompt_text = custom_prompt
             user_content.append({"type": "text", "text": custom_prompt})
         else:
             p = preset_prompts[preset_prompt].replace("#", custom_prompt.strip()).replace("@", "video" if video_input else "image")
+            prompt_text = p
             user_content.append({"type": "text", "text": p})
             
         if images is not None:
@@ -665,7 +673,7 @@ class llama_cpp_instruct_adv:
             
         del messages
         gc.collect()
-        return (out1, out2, uid)
+        return (out1, out2, uid, prompt_text)
 
 class llama_cpp_parameters:
     @classmethod
