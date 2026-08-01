@@ -282,7 +282,7 @@ if not hasattr(mm, "unload_all_models_backup"):
 
 llm_extensions = ['.ckpt', '.pt', '.bin', '.pth', '.safetensors', '.gguf']
 folder_paths.folder_names_and_paths["LLM"] = ([os.path.join(folder_paths.models_dir, "LLM")], llm_extensions)
-preset_prompts = {
+DEFAULT_PRESETS = {
     "Empty - Nothing": "",
     "Normal - Describe": "Describe this @.",
     "Prompt Style - Tags": "Your task is to generate a clean list of comma-separated tags for a text-to-@ AI, based *only* on the visual information in the @. Limit the output to a maximum of 50 unique tags. Strictly describe visual elements like subject, clothing, environment, colors, lighting, and composition. Do not include abstract concepts, interpretations, marketing terms, or technical jargon (e.g., no 'SEO', 'brand-aligned', 'viral potential'). The goal is a concise list of visual descriptors. Avoid repeating tags.",
@@ -305,7 +305,53 @@ preset_prompts = {
     "Qwen Describe - 黑白漫画彩色真实化 英文结果 [*]": "角色：专业图像描述工程师\n职责：详细、完整地描述画面中的各个元素，输出可直接用于图像生成参考的英文描述。\n**必须100%严格遵守以下所有规则，不得违反任何一条**：\n【一】核心目标\n✅ **必须详细描述**：画面中的所有可变元素，逐项展开、不遗漏、有层次\n✅ **彩色真实化**：如果输入图像是黑白漫画（黑白线稿、页漫、条漫等），输出时必须将画面描述成**彩色的真实照片**的样子，按真实摄影的标准措辞，并为画面元素合理地补全颜色\n✅ **必须描述人物性别**：明确说明人物是男性还是女性（如一位女孩、一位少年）\n✅ **必须描述发型发色**：准确描述人物的发型与发色（如黑色长发、棕色波浪卷、金色双马尾等）\n❌ **绝对禁止**：人物的长相（脸型、五官、肤色）与身材（身高、胖瘦、体型）——这些特征不得出现在描述中的任何位置\n\n【二】必须详细描述的元素（按以下顺序逐项展开）\n0. 人物性别：明确说明人物为男性或女性（如一位女孩、一位少年）\n1. 发型发色：准确描述人物的发型与发色（如黑色长发、棕色波浪卷、金色双马尾等）\n2. 景别/角度：正面、侧面、右前方、仰视、俯视、特写、中景、全身等\n3. 姿态动作：人物的姿势、肢体动作、动态\n4. 情绪神态：表情气质（如温婉平静、清冷疏离、自然微笑等）\n5. 服装细节：款式、颜色、纹样、材质、层次与搭配关系（按真实织物的质感描述，如棉麻、丝绸、皮革的纹理与垂坠感）\n6. 配饰：耳饰、发饰、项链、腰饰、鞋履等所有饰品（按真实金属/宝石的光泽与质感描述）\n7. 道具：人物手持或身边的物品及其细节\n8. 背景环境：场景、空间、远近层次、前景中景背景关系（按真实环境的材质与结构描述）\n9. 灯光氛围：光源方向、色温、光线质感、明暗对比（真实摄影的光线表现：如实际存在的影棚灯、窗光、环境光）\n10. 构图色彩：画面构图方式、主色调、色彩搭配与视觉重点\n\n【三】彩色真实化规则（输入黑白漫画时必须遵守）\n- 一律用真实摄影的视角描述：真实材质、真实光影、镜头虚化、景深、颗粒噪点、色彩宽容度等\n- 黑白画面没有颜色信息，必须为服装、配饰、道具、背景、灯光等元素**合理推测并补全颜色**，颜色要自然协调、符合画面内容\n- 画面中任何风格化、夸张、简化、非写实的元素，一律改写成现实世界中对应的真实形式\n- **绝对禁止**出现“黑白”“漫画”“线稿”“素描”“插画”“二次元”“卡通”“3D”“渲染”“赛璐璐”等暴露输入性质的词语\n\n【四】用词规范\n- 输出使用**纯英文**，只有触发词等专有名词（如 qipao、kimono）可使用中文拼音，其余一律用英文\n- 用词精准简洁，避免冗余与重复\n- 只做客观描述，不做主观评价（如“非常好看”“精致”“梦幻”等）\n\n【五】输出格式\n- 以自然语言段落形式输出，按【二】中元素顺序组织，详细而清晰\n- 如果用户提供了摄影风格提示 `#`，将 `#` 内容以“shot in the style of `#`”的形式附加在描述末尾\n\nExample input (black-and-white manga):\nA standing girl, wearing a qipao, butterfly hair ornament, plain background\nExample output:\nA girl, front view, close-up composition, standing posture, left arm hanging naturally, right hand lightly touching her hair, calm and composed expression, long black hair falling naturally, purple silk high-neck qipao top with delicate sheen and natural drape, white cotton ruffled off-shoulder sleeves, dark purple genuine leather waist belt with a golden brass flower buckle at the center, light purple gauze cape falling to the knees, blue metal butterfly hair clip and purple silk flower hair ornament, blue-green glass teardrop earrings, dark green velvet backdrop, studio softbox lighting, key light from 45 degrees front-right, shallow depth of field with blurred background, slight film grain, overall low-saturation contrast of purple and dark green, visual focus on the upper body",
     "Qwen Describe - 动漫风格化 [*]": "角色：专业图像描述工程师\n职责：详细、完整地描述画面中的各个元素，输出可直接用于图像生成参考的中文描述。\n**必须100%严格遵守以下所有规则，不得违反任何一条**：\n【一】核心目标\n✅ **必须详细描述**：画面中的所有可变元素，逐项展开、不遗漏、有层次\n✅ **动漫风格化**：如果输入图像是真实照片，输出时必须将画面描述成动漫插画的样子，按动画原画的风格措辞\n✅ **必须描述人物性别**：明确说明人物是男性还是女性（如一位女孩、一位少年）\n✅ **必须描述发型发色**：准确描述人物的发型与发色（如黑色长发、棕色波浪卷、金色双马尾等）\n❌ **绝对禁止**：人物的长相（脸型、五官、肤色）与身材（身高、胖瘦、体型）——这些特征不得出现在描述中的任何位置\n\n【二】必须详细描述的元素（按以下顺序逐项展开）\n0. 人物性别：明确说明人物为男性或女性（如一位女孩、一位少年）\n1. 发型发色：准确描述人物的发型与发色（如黑色长发、棕色波浪卷、金色双马尾等）\n2. 景别/角度：正面、侧面、右前方、仰视、俯视、特写、中景、全身等\n3. 姿态动作：人物的姿势、肢体动作、动态\n4. 情绪神态：表情气质（如温婉平静、清冷疏离、自然微笑等）\n5. 服装细节：款式、颜色、纹样、材质、层次与搭配关系（按动画上色的质感描述，如色块、高光、褶皱线条）\n6. 配饰：耳饰、发饰、项链、腰饰、鞋履等所有饰品（按插画风格的光泽与造型描述）\n7. 道具：人物手持或身边的物品及其细节\n8. 背景环境：场景、空间、远近层次、前景中景背景关系（按插画背景的风格与色调描述）\n9. 灯光氛围：光源方向、色温、光线质感、明暗对比（按动画特有的光影表现描述：如大块高光、渐变阴影、氛围光）\n10. 构图色彩：画面构图方式、主色调、色彩搭配与视觉重点\n\n【三】动漫风格化规则（输入真实照片时必须遵守）\n- 一律用动画插画的视角描述：赛璐璐上色、干净的线条、大块平涂色块、夸张的高光与阴影、无噪点、画面干净\n- 画面中所有写实、复杂的细节，一律改写成动漫插画中对应的简化、风格化形式\n- **绝对禁止**出现“照片”“摄影”“相机”“胶片”“镜头”“噪点”“颗粒”“景深”“真实感”“写实”等暴露真实照片性质的词语\n\n【四】用词规范\n- 使用纯中文，用词精准简洁，避免冗余与重复\n- 只做客观描述，不做主观评价（如“非常好看”“精致”“梦幻”等）\n\n【五】输出格式\n- 以自然语言段落形式输出，按【二】中元素顺序组织，详细而清晰\n- 如果用户提供了动漫风格提示 `#`，将 `#` 内容以“采用 `#` 的作画风格”的形式附加在描述末尾\n\n示例输入（真实照片）：\n一个站着的女孩，紫色旗袍，蓝色蝴蝶发饰，墨绿色背景\n示例输出：\n一位女孩，正面角度，脸部特写构图，站姿，左臂自然下垂，右手轻抚发梢，情绪平静淡然，黑色长发自然垂落，紫色挂脖高领旗袍上衣，大面积平涂紫色色块配合裙摆褶皱线条，衣料边缘带细腻的高光描边，白色荷叶边露肩袖套，深紫色宽腰带，腰带中央是金色花形腰扣，淡紫色披风垂至膝下，蓝色蝴蝶发饰与紫色花朵发饰点缀发间，蓝绿色菱形耳坠，墨绿色纯色背景，棚拍柔光，主光源从右前方45度打来，发丝和衣角带有明亮的动画式高光，画面干净无噪点，整体色调为紫色与墨绿色的低饱和对比，视觉重心集中在人物上半身",
 }
+PRESETS_FILE = os.path.join(folder_paths.user_directory, "llama-cpp", "presets.json")
+
+def _read_presets_json():
+    try:
+        if not os.path.exists(PRESETS_FILE):
+            os.makedirs(os.path.dirname(PRESETS_FILE), exist_ok=True)
+            with open(PRESETS_FILE, "w", encoding="utf-8") as f:
+                json.dump(DEFAULT_PRESETS, f, ensure_ascii=False, indent=2)
+            print(f"[llama-cpp_vlm] Created default presets file: {PRESETS_FILE}")
+            return DEFAULT_PRESETS
+        with open(PRESETS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            raise ValueError("presets file root must be a JSON object")
+        filtered = {k: v for k, v in data.items() if isinstance(k, str) and isinstance(v, str)}
+        if not filtered:
+            raise ValueError("presets file contains no valid string entries")
+        return filtered
+    except Exception as e:
+        print(f"[llama-cpp_vlm] Failed to load presets from {PRESETS_FILE}: {e}\n[llama-cpp_vlm] Falling back to built-in defaults.")
+        return None
+
+preset_prompts = _read_presets_json() or DEFAULT_PRESETS
 preset_tags = list(preset_prompts.keys())
+
+def reload_presets_from_file():
+    global preset_prompts, preset_tags
+    data = _read_presets_json()
+    if data is None:
+        return False
+    preset_prompts = data
+    preset_tags = list(data.keys())
+    return True
+
+try:
+    from server import PromptServer
+    import aiohttp.web
+
+    @PromptServer.instance.routes.post("/llama_cpp_vlm/refresh_presets")
+    async def refresh_presets(request):
+        if reload_presets_from_file():
+            return aiohttp.web.json_response({"status": "ok", "presets": preset_tags})
+        return aiohttp.web.json_response(
+            {"status": "error", "message": f"Failed to reload presets from {PRESETS_FILE}"},
+            status=500)
+except ImportError:
+    pass
 
 def image2base64(image):
     img = Image.fromarray(image)
@@ -463,30 +509,9 @@ class llama_cpp_instruct_adv:
                 "llama_model": ("LLAMACPPMODEL",),
                 "preset_prompt": (preset_tags, {
                     "default": preset_tags[1],
-                    "tooltip": "内置提示词预设。\n"
+                    "tooltip": "提示词预设，可在 ComfyUI user/llama-cpp/presets.json 中增删改，点击节点上的\"刷新预设\"按钮即时生效。\n"
                                "@ 代表图像（视频模式自动替换为 video），# 为自定义内容占位符。\n"
-                               "带 * 的预设会使用 custom_prompt 填充占位符；其余预设只要填写了 custom_prompt 就会被完全替换。\n\n"
-                               "Empty - Nothing: 不使用预设\n"
-                               "Normal - Describe: 简单描述图片\n"
-                               "Prompt Style - Tags: 生成最多 50 个逗号分隔的视觉标签（禁抽象概念）\n"
-                               "Prompt Style - Simple: 强制单句简洁描述\n"
-                               "Prompt Style - Detailed: 2-3 句详细描述\n"
-                               "Prompt Style - Extreme Detailed: 极详细长段落描述\n"
-                               "Prompt Style - Cinematic: 电影风格化提示词（主体/姿势/环境/灯光/风格）\n"
-                               "Creative - Detailed Analysis: 按主体/服饰/背景等分节分析\n"
-                               "Creative - Summarize Video: 总结视频关键事件（视频模式）\n"
-                               "Creative - Short Story: 看图创作短故事\n"
-                               "Creative - Refine & Expand Prompt: 扩写增强已有提示词\n"
-                               "Vision - *Bounding Box: 输出 bbox 定位 JSON（# 填目标类别）\n"
-                               "Qwen Tagging - 中文结果 [*]: LoRA 打标规则书（中文输出），# 填触发词\n"
-                               "Qwen Tagging - 英文结果 [*]: LoRA 打标规则书（英文输出），# 填触发词\n"
-                               "Qwen Describe - 详细元素描述: 中文段落式详细描述画面元素（禁描述长相与身材）\n"
-                               "Qwen Describe - 真实照片化 [*]: 同详细元素描述，非真实照片时按真实摄影标准输出（# 可填风格提示）\n"
-                               "Qwen Describe - 动漫风格化 [*]: 同详细元素描述，真实照片时按动画插画风格输出（# 可填作画风格）\n"
-                               "Qwen Describe - 真实照片化 英文结果 [*]: 同上，输出为英文\n"
-                               "Qwen Describe - 动漫风格化 英文结果 [*]: 同上，输出为英文\n"
-                               "Qwen Describe - 黑白漫画彩色真实化 [*]: 黑白漫画按彩色真实照片描述，并合理补全颜色\n"
-                               "Qwen Describe - 黑白漫画彩色真实化 英文结果 [*]: 同上，输出为英文",
+                               "带 * 的预设会使用 custom_prompt 填充占位符；其余预设只要填写了 custom_prompt 就会被完全替换。",
                 }),
                 "custom_prompt": ("STRING", {
                     "default": "", "multiline": True,
@@ -605,7 +630,7 @@ class llama_cpp_instruct_adv:
             prompt_text = custom_prompt
             user_content.append({"type": "text", "text": custom_prompt})
         else:
-            p = preset_prompts[preset_prompt].replace("#", custom_prompt.strip()).replace("@", "video" if video_input else "image")
+            p = preset_prompts.get(preset_prompt, "").replace("#", custom_prompt.strip()).replace("@", "video" if video_input else "image")
             prompt_text = p
             user_content.append({"type": "text", "text": p})
             
